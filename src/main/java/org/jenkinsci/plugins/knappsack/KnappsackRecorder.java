@@ -73,7 +73,11 @@ public class KnappsackRecorder extends Recorder {
         File file = findInstallationFile(artifactDirectory, artifactFile, workspace);
         uploadFile(file, build);
 
-        return super.perform(build, launcher, listener);
+        try {
+            return super.perform(build, launcher, listener);
+        } catch (UnsupportedOperationException uoe) {
+            return true;
+        } 
     }
 
     private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace) {
