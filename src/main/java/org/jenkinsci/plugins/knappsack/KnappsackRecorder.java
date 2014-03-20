@@ -64,20 +64,21 @@ public class KnappsackRecorder extends Recorder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        
         if (build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
             return false;
         }
 
-        EnvVars vars = build.getEnvironment(listener);
-        String workspace = vars.expand("$WORKSPACE");
-        File file = findInstallationFile(artifactDirectory, artifactFile, workspace);
-        uploadFile(file, build);
-
         try {
-            return super.perform(build, launcher, listener);
-        } catch (UnsupportedOperationException uoe) {
-            return true;
-        } 
+            EnvVars vars = build.getEnvironment(listener);
+            String workspace = vars.expand("$WORKSPACE");
+            File file = findInstallationFile(artifactDirectory, artifactFile, workspace);
+            uploadFile(file, build);
+        } catch (Throwable t) {
+            return false;
+        }
+
+        return true;
     }
 
     private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace) {

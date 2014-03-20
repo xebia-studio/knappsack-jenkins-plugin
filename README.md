@@ -1,6 +1,6 @@
 knappsack-jenkins-plugin
 ========================
 
-A Jenkins plugin to push build artifacts to Knappsack
+The Jenkins plugin to push build artifacts to Knappsack
 
-Under development
+Currently support both knappsack.com and self-hosted knappsack instances.
