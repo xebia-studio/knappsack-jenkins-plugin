@@ -34,18 +34,18 @@ public class KnappsackBuildStepDescriptor extends BuildStepDescriptor<Publisher>
         return "Push artifact to Knappsack";
     }
 
-    public ListBoxModel doFillApplicationItems(@QueryParameter String userName, @QueryParameter Secret userPassword, @QueryParameter String knappsackURL) {
-        ListBoxModel m = new ListBoxModel();
+    // public ListBoxModel doFillApplicationItems(@QueryParameter String userName, @QueryParameter Secret userPassword, @QueryParameter String knappsackURL) {
+    //     ListBoxModel m = new ListBoxModel();
 
-        if (!userName.isEmpty() && !userPassword.getEncryptedValue().isEmpty() && !knappsackURL.isEmpty()) {
-            KnappsackAPI knappsackAPI = new KnappsackAPI(knappsackURL, userName, userPassword);
-            Application[] applications = knappsackAPI.getApplications();
-            for (Application application : applications) {
-                m.add(application.getName(), application.getId().toString());
-            }
-        }
-        return m;
-    }
+    //     if (!userName.isEmpty() && !userPassword.getEncryptedValue().isEmpty() && !knappsackURL.isEmpty()) {
+    //         KnappsackAPI knappsackAPI = new KnappsackAPI(knappsackURL, userName, userPassword);
+    //         Application[] applications = knappsackAPI.getApplications();
+    //         for (Application application : applications) {
+    //             m.add(application.getName(), application.getId().toString());
+    //         }
+    //     }
+    //     return m;
+    // }
 
     public ListBoxModel doFillApplicationStateItems() {
         ListBoxModel m = new ListBoxModel();

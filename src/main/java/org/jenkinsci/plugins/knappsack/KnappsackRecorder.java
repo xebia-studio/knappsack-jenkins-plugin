@@ -72,7 +72,7 @@ public class KnappsackRecorder extends Recorder {
             return false;
         }
 
-        listener.getLogger().println("Uploading to Knappsack");
+        listener.getLogger().println("Uploading to Knappsack...");
 
         EnvVars vars = build.getEnvironment(listener);
         String workspace = vars.expand("$WORKSPACE");
@@ -83,12 +83,21 @@ public class KnappsackRecorder extends Recorder {
     }
 
     private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace, AbstractBuild<?, ?> build, BuildListener listener) throws InterruptedException, IOException {
+        
+        listener.getLogger().println("Artifact file: " + artifactFile);
+        listener.getLogger().println("Artifact directory: " + artifactDirectory);
 
         EnvVars vars = build.getEnvironment(listener);
-        listener.getLogger().println("Artifact file: " + artifactFile);
-        LOG.info(artifactDirectory);
+        Boolean artifactDirectoryContainsWorkspace = artifactDirectory.indexOf("$WORKSPACE") != -1;
+
+        // Adds trailing slash
         if (!artifactDirectory.endsWith(System.getProperty("file.separator"))) {
             artifactDirectory = artifactDirectory + System.getProperty("file.separator");
+        }
+
+        // Adds workspace at the beginning of the path if the path does not begin with a slash
+        if (!artifactDirectoryContainsWorkspace && !artifactDirectory.startsWith(System.getProperty("file.separator"))) {
+            artifactDirectory = workspace + artifactDirectory;
         }
 
         File file = null;
