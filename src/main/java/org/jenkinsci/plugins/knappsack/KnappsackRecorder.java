@@ -19,6 +19,7 @@ import hudson.util.Secret;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.jenkinsci.plugins.knappsack.models.TokenResponse;
 import org.kohsuke.stapler.DataBoundConstructor;
+import java.util.logging.Logger;
 
 import javax.ws.rs.core.MediaType;
 import java.io.File;
@@ -36,6 +37,7 @@ public class KnappsackRecorder extends Recorder {
     private String application;
     private String applicationState = "DISABLED";
     private KnappsackAPI knappsackAPI;
+    static Logger LOG = Logger.getLogger(KnappsackRecorder.class.getName());
 
     @DataBoundConstructor
     public KnappsackRecorder(String userName, Secret userPassword, String knappsackURL, String artifactDirectory, String artifactFile, String application, String applicationState) {
@@ -66,30 +68,33 @@ public class KnappsackRecorder extends Recorder {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         
         if (build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
+            System.out.println("Build result is failure: wont upload to Knappsack");
             return false;
         }
 
-        try {
-            EnvVars vars = build.getEnvironment(listener);
-            String workspace = vars.expand("$WORKSPACE");
-            File file = findInstallationFile(artifactDirectory, artifactFile, workspace);
-            uploadFile(file, build);
-        } catch (Throwable t) {
-            return false;
-        }
+        listener.getLogger().println("Uploading to Knappsack");
+
+        EnvVars vars = build.getEnvironment(listener);
+        String workspace = vars.expand("$WORKSPACE");
+        File file = findInstallationFile(artifactDirectory, artifactFile, workspace, build, listener);
+        uploadFile(file, build);
 
         return true;
     }
 
-    private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace) {
+    private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace, AbstractBuild<?, ?> build, BuildListener listener) throws InterruptedException, IOException {
 
+        EnvVars vars = build.getEnvironment(listener);
+        listener.getLogger().println("Artifact file: " + artifactFile);
+        LOG.info(artifactDirectory);
         if (!artifactDirectory.endsWith(System.getProperty("file.separator"))) {
             artifactDirectory = artifactDirectory + System.getProperty("file.separator");
         }
 
         File file = null;
         if (!artifactDirectory.trim().isEmpty() && !artifactFile.trim().isEmpty()) {
-            File directory = new File(artifactDirectory);
+            File directory = new File(vars.expand(artifactDirectory));
+            listener.getLogger().println("Directory absolute path: " + directory.getAbsolutePath());
             file = getFile(directory, artifactFile);
         }
 
@@ -98,6 +103,8 @@ public class KnappsackRecorder extends Recorder {
             File directory = new File(workspace);
             file = getFile(directory, artifactFile);
         }
+
+        listener.getLogger().println("File absolute path: " + file.getAbsolutePath());
 
         return file;
     }
