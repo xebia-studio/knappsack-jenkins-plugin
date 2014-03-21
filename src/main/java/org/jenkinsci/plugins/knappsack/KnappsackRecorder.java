@@ -66,7 +66,7 @@ public class KnappsackRecorder extends Recorder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        
+
         if (build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
             System.out.println("Build result is failure: wont upload to Knappsack");
             return false;
@@ -76,14 +76,24 @@ public class KnappsackRecorder extends Recorder {
 
         EnvVars vars = build.getEnvironment(listener);
         String workspace = vars.expand("$WORKSPACE");
-        File file = findInstallationFile(artifactDirectory, artifactFile, workspace, build, listener);
-        uploadFile(file, build);
+
+        String[] artifactFiles = artifactFile.split(",");
+        String[] applicationIds = application.split(",");
+        if(applicationIds.length != artifactFiles.length){
+            listener.getLogger().println("Artifact files count doesn't match application ids count, so build result is failure: wont upload to Knappsack");
+            return false;
+        }
+
+        for(int i= 0; i<artifactFiles.length; i++){
+            File file = findInstallationFile(artifactDirectory, artifactFiles[i].trim(), workspace, build, listener);
+            uploadFile(file, applicationIds[i], build);
+        }
 
         return true;
     }
 
     private File findInstallationFile(String artifactDirectory, String artifactFile, String workspace, AbstractBuild<?, ?> build, BuildListener listener) throws InterruptedException, IOException {
-        
+
         listener.getLogger().println("Artifact file: " + artifactFile);
         listener.getLogger().println("Artifact directory: " + artifactDirectory);
 
@@ -130,12 +140,12 @@ public class KnappsackRecorder extends Recorder {
         return file;
     }
 
-    private void uploadFile(File file, AbstractBuild<?, ?> build) {
+    private void uploadFile(File file, String applicationId, AbstractBuild<?, ?> build) {
         TokenResponse tokenResponse = knappsackAPI.getTokenResponse();
         String url = knappsackURL + "/api/v1/applicationVersions";
 
         FormDataMultiPart part = new FormDataMultiPart();
-        part.field("applicationId", application);
+        part.field("applicationId", applicationId);
 
         int buildNumber = build.getNumber();
         int month = build.getTimestamp().get(Calendar.MONTH);

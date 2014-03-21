@@ -17,10 +17,10 @@
     <f:entry title="Artifact Directory" field="artifactDirectory">
         <f:textbox />
     </f:entry>
-    <f:entry title="Artifact File" field="artifactFile">
+    <f:entry title="Artifact Files" field="artifactFile">
         <f:textbox />
     </f:entry>
-    <f:entry title="Application ID" field="application">
+    <f:entry title="Application IDs" field="application">
         <f:textbox />
     </f:entry>
     <f:entry title="Application State" field="applicationState">
