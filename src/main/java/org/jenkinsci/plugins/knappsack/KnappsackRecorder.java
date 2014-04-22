@@ -19,13 +19,13 @@ import hudson.util.Secret;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.jenkinsci.plugins.knappsack.models.TokenResponse;
 import org.kohsuke.stapler.DataBoundConstructor;
-import java.util.logging.Logger;
 
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.logging.Logger;
 
 public class KnappsackRecorder extends Recorder {
 
@@ -79,14 +79,14 @@ public class KnappsackRecorder extends Recorder {
 
         String[] artifactFiles = artifactFile.split(",");
         String[] applicationIds = application.split(",");
-        if(applicationIds.length != artifactFiles.length){
+        if (applicationIds.length != artifactFiles.length) {
             listener.getLogger().println("Artifact files count doesn't match application ids count, so build result is failure: wont upload to Knappsack");
             return false;
         }
 
-        for(int i= 0; i<artifactFiles.length; i++){
+        for (int i = 0; i < artifactFiles.length; i++) {
             File file = findInstallationFile(artifactDirectory, artifactFiles[i].trim(), workspace, build, listener);
-            uploadFile(file, applicationIds[i], build);
+            uploadFile(file, applicationIds[i], build,listener);
         }
 
         return true;
@@ -140,7 +140,7 @@ public class KnappsackRecorder extends Recorder {
         return file;
     }
 
-    private void uploadFile(File file, String applicationId, AbstractBuild<?, ?> build) {
+    private void uploadFile(File file, String applicationId, AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
         TokenResponse tokenResponse = knappsackAPI.getTokenResponse();
         String url = knappsackURL + "/api/v1/applicationVersions";
 
@@ -165,6 +165,14 @@ public class KnappsackRecorder extends Recorder {
                 }
                 changeListSB.append(entry.getAuthor()).append(": ").append(entry.getMsg());
             }
+        }
+        changeListSB.append("Build date: ").append(build.getTime()).append("\n");
+
+
+        EnvVars vars = build.getEnvironment(listener);
+        String gitCommit = vars.expand("$GIT_COMMIT");
+        if (gitCommit != null) {
+            changeListSB.append("Git commit: ").append(gitCommit).append("\n");
         }
 
         String changeList = changeListSB.toString();
